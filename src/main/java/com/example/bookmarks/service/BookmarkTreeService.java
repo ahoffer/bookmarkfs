@@ -43,21 +43,21 @@ public class BookmarkTreeService {
     BookmarkTree incomingTree = new BookmarkTree(newJsonTree);
     BookmarkTree validated = pipeline.run(incomingTree);
 
-    current.setData(validated.getNormalized());
+    current.setData(validated.getJsonNode());
     current.setCurrentHash(validated.hash());
     current.setUpdatedAt(Instant.now());
     repository.save(current);
   }
 
   @Transactional
-  public void insertIntoInbox(String userId, BookmarkEntry entry) {
+  public void deliverToInbox(String userId, BookmarkEntry entry) {
     UserBookmarkTree current =
         repository.findById(userId).orElseThrow(() -> new IllegalStateException("Tree not found"));
 
-    BookmarkTree tree = new BookmarkTree(current.getData()).insertIntoInbox(entry);
+    BookmarkTree tree = new BookmarkTree(current.getData()).deliverToInbox(entry);
     tree = new NormalizeStructureFilter().apply(tree);
 
-    current.setData(tree.getNormalized());
+    current.setData(tree.getJsonNode());
     current.setCurrentHash(tree.hash());
     current.setUpdatedAt(Instant.now());
     repository.save(current);

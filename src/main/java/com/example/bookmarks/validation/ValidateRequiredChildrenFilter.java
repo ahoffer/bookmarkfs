@@ -11,7 +11,7 @@ public class ValidateRequiredChildrenFilter implements Filter<BookmarkTree, Book
 
   @Override
   public BookmarkTree apply(BookmarkTree tree) {
-    JsonNode children = tree.getNormalized().path("children");
+    JsonNode children = tree.getJsonNode().path("contents");
     if (!children.isArray()) {
       throw new IllegalArgumentException("Root must have a 'children' array");
     }

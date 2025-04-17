@@ -1,5 +1,6 @@
 package com.example.bookmarks.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -42,7 +43,7 @@ class BookmarkTreeServiceTest {
         new ObjectMapper()
             .readTree(
                 """
-            { "root": { "children": [], "kind": "root" } }
+            { "root": { "contents": [], "kind": "root" } }
         """));
 
     when(repository.findById("user123")).thenReturn(Optional.of(oldTree));
@@ -53,7 +54,7 @@ class BookmarkTreeServiceTest {
                 """
             {
               "root": {
-                "children": [
+                "contents": [
                   { "id": "bookmark-1", "kind": "bookmark", "name": "Test", "url": "https://example.com" }
                 ],
                 "kind": "root"
@@ -69,17 +70,41 @@ class BookmarkTreeServiceTest {
   }
 
   @Test
-  void insertIntoInbox_appendsBookmarkAndSaves() throws Exception {
+  void exp() throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+
+    String source = """    
+              {
+              "name":
+              {
+                "first": "Tatu",
+                      "last": "Saloranta"
+              },
+            
+              "title": "Jackson founder",
+                    "company": "FasterXML"
+            }""";
+
+    String newString = "{\"nick\": \"cowtowncoder\"}";
+    JsonNode newNode = mapper.readTree(newString);
+
+    JsonNode rootNode = mapper.readTree(source);
+    JsonNode p = rootNode.path("name").path("first");
+//    ((ObjectNode) rootNode).set("name", newNode);
+  }
+
+  @Test
+  void deliverToInbox_appendsBookmarkAndSaves() throws Exception {
     JsonNode currentData =
         new ObjectMapper()
             .readTree(
                 """
             {
               "root": {
-                "children": [
-                  { "id": "inbox", "kind": "folder", "children": [] },
-                  { "id": "trash", "kind": "folder", "children": [] },
-                  { "id": "my-folder", "kind": "folder", "children": [] }
+                "contents": [
+                  { "id": "inbox", "kind": "folder", "contents": [] },
+                  { "id": "trash", "kind": "folder", "contents": [] },
+                  { "id": "my-folder", "kind": "folder", "contents": [] }
                 ],
                 "kind": "root"
               }
@@ -91,9 +116,9 @@ class BookmarkTreeServiceTest {
     oldTree.setCurrentHash("initial");
     when(repository.findById("user123")).thenReturn(Optional.of(oldTree));
 
-    var entry = new BookmarkEntry("new-entry", "bookmark", "Inbox Item", "https://chat.openai.com");
+    var entry = new BookmarkEntry("new-entry", "Inbox Item", "bookmark");
 
-    service.insertIntoInbox("user123", entry);
+    service.deliverToInbox("user123", entry);
 
     ArgumentCaptor<UserBookmarkTree> captor = ArgumentCaptor.forClass(UserBookmarkTree.class);
     verify(repository).save(captor.capture());

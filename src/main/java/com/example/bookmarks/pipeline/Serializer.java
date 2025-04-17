@@ -9,7 +9,7 @@ public class Serializer implements Filter<BookmarkTree, String> {
   @Override
   public String apply(BookmarkTree tree) {
     try {
-      return mapper.writeValueAsString(tree.getNormalized());
+      return mapper.writeValueAsString(tree.getJsonNode());
     } catch (Exception e) {
       throw new RuntimeException("Failed to serialize BookmarkTree", e);
     }

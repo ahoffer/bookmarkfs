@@ -4,46 +4,46 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
 
+import java.util.Iterator;
+import java.util.Map;
+
 public class BookmarkTree {
   private static final ObjectMapper mapper = new ObjectMapper();
-  private final JsonNode normalized;
+  private final JsonNode jsonNode;
 
   public BookmarkTree(JsonNode raw) {
-    this.normalized = raw;
+    this.jsonNode = raw;
   }
 
-  public JsonNode getNormalized() {
-    return normalized;
+  public JsonNode getJsonNode() {
+    return jsonNode;
   }
 
-  public boolean isSemanticallyEqualTo(BookmarkTree other) {
-    return this.normalized.equals(other.normalized);
-  }
+  // TODO If we need this, run it through a pipeline to normalize it.
+  //  public boolean isSemanticallyEqualTo(BookmarkTree other) {
+  //    return this.jsonNode.equals(other.jsonNode);
+  //  }
 
   public String hash() {
-    return BookmarkTreeHasher.hash(normalized);
+    return BookmarkTreeHasher.hash(jsonNode);
   }
 
-  public BookmarkTree insertIntoInbox(BookmarkEntry entry) {
-    ObjectNode root = (ObjectNode) normalized.deepCopy();
-    ArrayNode children = (ArrayNode) root.withArray("children");
+  public BookmarkTree deliverToInbox(BookmarkEntry entry) {
+    ObjectNode node = jsonNode.deepCopy();
+    JsonNode rootContents = node.path("root").path("contents");
+    rootContents.elements().forEachRemaining(o -> {
+      ArrayNode x = (ArrayNode) o.get("contents");
+      ArrayNode y = x.add(mapper.valueToTree(entry));
 
-    for (JsonNode child : children) {
-      if ("inbox".equals(child.path("id").asText()) && child.isObject()) {
-        ObjectNode inbox = (ObjectNode) child;
-        ArrayNode bookmarks = inbox.withArray("bookmarks");
 
-        ObjectNode newBookmark = mapper.createObjectNode();
-        newBookmark.put("id", entry.id());
-        newBookmark.put("metaCardId", entry.metaCardId());
-        newBookmark.put("title", entry.title());
-        newBookmark.put("url", entry.url());
-
-        bookmarks.add(newBookmark);
-        return new BookmarkTree(root);
+    });
+//    if (inboxNode.isMissingNode()) {
+//      throw new IllegalStateException("'inbox' folder not found under root");
+//    }
+//        ArrayNode inboxContents = inboxNode.withArray("contents");
+//        ObjectNode newItem = mapper.valueToTree(entry);
+//        inboxContents.add(newItem);
+        return new BookmarkTree(node);
       }
     }
 
-    throw new IllegalStateException("'inbox' folder not found under root");
-  }
-}
