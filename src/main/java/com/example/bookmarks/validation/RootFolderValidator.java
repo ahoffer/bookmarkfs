@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 
 public class RootFolderValidator {
   private static final Set<String> REQUIRED_NAMES = Set.of("my-folder", "inbox", "trash");
-  private final ModelValidator validator;
+  private final ValidationService validator;
 
-  public RootFolderValidator(ModelValidator validator) {
-    this.validator = validator;
+  public RootFolderValidator(ValidationService validationService) {
+    this.validator = validationService;
   }
 
   public void validate(RootFolder root) {

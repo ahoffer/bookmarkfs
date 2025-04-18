@@ -7,10 +7,10 @@ import com.example.bookmarks.model.TreeNode;
 import java.util.UUID;
 
 public class FolderValidator {
-  private final ModelValidator validator;
+  private final ValidationService validator;
 
-  public FolderValidator(ModelValidator validator) {
-    this.validator = validator;
+  public FolderValidator(ValidationService validationService) {
+    this.validator = validationService;
   }
 
   private void assertValidUUID(String id, String label) {

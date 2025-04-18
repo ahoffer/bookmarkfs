@@ -7,7 +7,7 @@ import com.example.bookmarks.model.RootFolder;
 import com.example.bookmarks.model.RootFolderFactory;
 import com.example.bookmarks.persistence.UserDrive;
 import com.example.bookmarks.persistence.UserDriveRepository;
-import com.example.bookmarks.validation.ModelValidator;
+import com.example.bookmarks.validation.ValidationService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import org.mockito.ArgumentCaptor;
 class DriveServiceTest {
   private UserDriveRepository repository;
   private DriveService service;
-  private ModelValidator validator;
+  private ValidationService validator;
 
   @Test
   void getUserDrive_found() {
@@ -36,7 +36,7 @@ class DriveServiceTest {
   @BeforeEach
   void setup() {
     repository = mock(UserDriveRepository.class);
-    validator = mock(ModelValidator.class);
+    validator = mock(ValidationService.class);
     service = new DriveService(repository, validator);
     doNothing().when(validator).validate(any(RootFolder.class));
   }

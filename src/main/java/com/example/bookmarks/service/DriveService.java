@@ -3,7 +3,7 @@ package com.example.bookmarks.service;
 import com.example.bookmarks.model.RootFolder;
 import com.example.bookmarks.persistence.UserDrive;
 import com.example.bookmarks.persistence.UserDriveRepository;
-import com.example.bookmarks.validation.ModelValidator;
+import com.example.bookmarks.validation.ValidationService;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DriveService {
   private final UserDriveRepository repository;
-  private final ModelValidator validator;
+  private final ValidationService validator;
 
-  public DriveService(UserDriveRepository repository, ModelValidator validator) {
+  public DriveService(UserDriveRepository repository, ValidationService validator) {
     this.repository = repository;
     this.validator = validator;
   }

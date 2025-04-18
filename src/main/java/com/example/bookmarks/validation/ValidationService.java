@@ -7,7 +7,7 @@ import com.example.bookmarks.model.TreeNode;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ModelValidator {
+public class ValidationService {
 
   private final BookmarkValidator bookmarkValidator = new BookmarkValidator();
   private final FolderValidator folderValidator = new FolderValidator(this);
