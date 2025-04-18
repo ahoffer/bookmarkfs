@@ -1,24 +1,24 @@
 package com.example.bookmarks.controller;
 
-import com.example.bookmarks.service.BookmarkTreeService;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.example.bookmarks.model.RootFolder;
+import com.example.bookmarks.service.DriveService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users/{userId}/bookmark-tree")
-public class BookmarkTreeController {
+public class DriveController {
 
-  private final BookmarkTreeService service;
+  private final DriveService service;
 
-  public BookmarkTreeController(BookmarkTreeService service) {
+  public DriveController(DriveService service) {
     this.service = service;
   }
 
   @GetMapping
   public ResponseEntity<?> getBookmarkTree(@PathVariable String userId) {
     return service
-        .getTree(userId)
+        .getUserDrive(userId)
         .map(
             tree ->
                 ResponseEntity.ok().eTag('"' + tree.getCurrentHash() + '"').body(tree.getData()))
@@ -29,9 +29,9 @@ public class BookmarkTreeController {
   public ResponseEntity<?> updateBookmarkTree(
       @PathVariable String userId,
       @RequestHeader("If-Match") String expectedHash,
-      @RequestBody JsonNode newTreeJson) {
+      @RequestBody RootFolder newTree) {
     try {
-      service.updateTreeWithHashCheck(userId, expectedHash, newTreeJson);
+      service.updateTreeWithHashCheck(userId, expectedHash, newTree);
       return ResponseEntity.noContent().build();
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(409).body("Conflict: " + e.getMessage());

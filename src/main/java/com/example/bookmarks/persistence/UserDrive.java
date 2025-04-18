@@ -1,40 +1,44 @@
 package com.example.bookmarks.persistence;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.example.bookmarks.model.RootFolder;
 import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "user_bookmark_tree")
-public class UserBookmarkTree {
+@Table(name = "user_drive")
+public class UserDrive {
 
   @Id
   @Column(name = "user_id", nullable = false)
   private String userId;
 
+  @Convert(converter = RootFolderConverter.class)
   @Column(name = "data", columnDefinition = "jsonb", nullable = false)
-  @Convert(converter = JsonNodeConverter.class)
-  private JsonNode data;
+  private RootFolder data;
 
   @Column(name = "current_hash", nullable = false)
   private String currentHash;
 
   @Column(name = "updated_at", nullable = false)
-  private Instant updatedAt;
+  private Instant lastUpdated;
+
+  public UserDrive() {}
+
+  public UserDrive(String userId, RootFolder data) {
+    this.userId = userId;
+    this.data = data;
+    this.lastUpdated = Instant.now();
+  }
 
   public String getUserId() {
     return userId;
   }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
-  }
-
-  public JsonNode getData() {
+  public RootFolder getData() {
     return data;
   }
 
-  public void setData(JsonNode data) {
+  public void setData(RootFolder data) {
     this.data = data;
   }
 
@@ -46,11 +50,11 @@ public class UserBookmarkTree {
     this.currentHash = currentHash;
   }
 
-  public Instant getUpdatedAt() {
-    return updatedAt;
+  public Instant getLastUpdated() {
+    return lastUpdated;
   }
 
-  public void setUpdatedAt(Instant updatedAt) {
-    this.updatedAt = updatedAt;
+  public void setLastUpdated(Instant lastUpdated) {
+    this.lastUpdated = lastUpdated;
   }
 }
