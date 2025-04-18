@@ -9,7 +9,7 @@ import java.time.Instant;
 public class UserDrive {
 
   @Id
-  @Column(name = "user_id", nullable = false)
+  @Column(name = "user_id", nullable = false, updatable = false)
   private String userId;
 
   @Convert(converter = RootFolderConverter.class)
@@ -19,14 +19,28 @@ public class UserDrive {
   @Column(name = "current_hash", nullable = false)
   private String currentHash;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated", nullable = false)
   private Instant lastUpdated;
 
-  public UserDrive() {}
+  protected UserDrive() {
+    // For JPA
+  }
 
   public UserDrive(String userId, RootFolder data) {
     this.userId = userId;
+    setData(data); // ensures hash is updated
+  }
+
+  public UserDrive(String userId, RootFolder data, String currentHash) {
+    this.userId = userId;
     this.data = data;
+    this.currentHash = currentHash;
+  }
+
+  // Update the timestamp when saved to the DB
+  @PrePersist
+  @PreUpdate
+  private void updateTimestamp() {
     this.lastUpdated = Instant.now();
   }
 
@@ -40,13 +54,14 @@ public class UserDrive {
 
   public void setData(RootFolder data) {
     this.data = data;
+    this.currentHash = data != null ? data.hash() : null;
   }
 
   public String getCurrentHash() {
     return currentHash;
   }
 
-  public void setCurrentHash(String currentHash) {
+  public void setCurrentHashManually(String currentHash) {
     this.currentHash = currentHash;
   }
 

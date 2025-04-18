@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = Folder.class, name = "folder"),
   @JsonSubTypes.Type(value = Bookmark.class, name = "bookmark")
 })
-public interface TreeNode {
+public sealed interface TreeNode permits Bookmark, Folder, RootFolder {
   String getId();
 
   String getKind();
