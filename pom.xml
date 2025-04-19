@@ -1,27 +1,22 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.example</groupId>
     <artifactId>bookmark-tree</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>bookmark-tree</name>
     <description>Spring Boot Bookmark Tree Service</description>
     <packaging>jar</packaging>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.4</version>
         <relativePath/>
     </parent>
-
     <properties>
         <java.version>21</java.version>
     </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -32,7 +27,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -54,7 +48,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -72,7 +65,6 @@
             <groupId>org.assertj</groupId>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -88,47 +80,39 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.6.0</version>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.5</version>
                 <executions>
                     <execution>
-                        <id>timestamp-property</id>
-                        <phase>validate</phase>
+                        <id>jib-package</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>timestamp-property</goal>
-                        </goals>
-                        <configuration>
-                            <name>timestamp</name>
-                            <pattern>YYYYMMHHmm</pattern>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.4.4</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build-image</goal>
+                            <goal>dockerBuild</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <!--suppress UnresolvedMavenProperty -->
-                    <!--            <imageName>bookmark-tree:${project.version}.${timestamp}</imageName>-->
-                    <imageName>bookmark-tree</imageName>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <from>
+                        <image>amazoncorretto:21</image>
+                    </from>
+                    <to>
+                        <image>bookmarks-app:latest</image>
+                    </to>
+                    <container>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                        <environment>
+                            <MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE>health
+                            </MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE>
+                            <MANAGEMENT_ENDPOINTS_WEB_BASE_PATH>/actuator</MANAGEMENT_ENDPOINTS_WEB_BASE_PATH>
+                        </environment>
+                        <jvmFlags>
+                            <jvmFlag>-XX:+UseContainerSupport</jvmFlag>
+                            <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
+                        </jvmFlags>
+                    </container>
                 </configuration>
             </plugin>
         </plugins>
