@@ -98,13 +98,15 @@
                 </executions>
                 <configuration>
                     <from>
-                        <image>amazoncorretto:21</image>
+                        <!--                        <image>amazoncorretto:21</image>-->
+                        <image>eclipse-temurin:21-jre</image>
                     </from>
                     <to>
                         <image>bookmarks-app:latest</image>
                     </to>
                     <container>
                         <ports>
+                            <port>5005</port>
                             <port>8080</port>
                         </ports>
                         <environment>
@@ -113,6 +115,7 @@
                             <MANAGEMENT_ENDPOINTS_WEB_BASE_PATH>/actuator</MANAGEMENT_ENDPOINTS_WEB_BASE_PATH>
                         </environment>
                         <jvmFlags>
+                            <jvmFlag>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005</jvmFlag>
                             <jvmFlag>-XX:+UseContainerSupport</jvmFlag>
                             <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
                         </jvmFlags>
