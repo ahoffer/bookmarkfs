@@ -2,7 +2,7 @@ package com.example.bookmarks.model;
 
 import java.util.List;
 
-public record RootFolder(String id, String kind, String name, List<TreeNode> contents)
+public record RootFolder(String id, String type, String name, List<TreeNode> contents)
     implements TreeNode {
 
   @Override
@@ -11,15 +11,15 @@ public record RootFolder(String id, String kind, String name, List<TreeNode> con
   }
 
   @Override
-  public String getKind() {
-    return kind;
+  public String getType() {
+    return type;
   }
 
   @Override
   public String hash() {
     DigestAccumulator acc = new DigestAccumulator();
     acc.update(id);
-    acc.update(kind);
+    acc.update(type);
     acc.update(name);
     acc.updateAll(contents);
     return acc.digestBase64();

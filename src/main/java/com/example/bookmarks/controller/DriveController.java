@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users/{userId}/bookmark-tree")
+@RequestMapping("/users/{userId}/vfs")
 public class DriveController {
 
   private final DriveService service;
@@ -26,7 +26,7 @@ public class DriveController {
   }
 
   @PutMapping
-  public ResponseEntity<?> updateBookmarkTree(
+  public ResponseEntity<?> putBookmarkTree(
       @PathVariable String userId,
       @RequestHeader("If-Match") String expectedHash,
       @RequestBody RootFolder newTree) {

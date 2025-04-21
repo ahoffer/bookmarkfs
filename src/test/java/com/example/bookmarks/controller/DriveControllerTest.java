@@ -55,13 +55,12 @@ class DriveControllerTest {
   }
 
   @Test
-  void updateBookmarkTree_WhenHashConflict_ReturnsConflictResponse() {
+  void putBookmarkTree_WhenHashConflict_ReturnsConflictResponse() {
     String expectedHash = "expected-hash";
     doThrow(new IllegalArgumentException("Hash mismatch"))
         .when(service)
         .updateTreeWithHashCheck(USER_ID, expectedHash, testRootFolder);
-    ResponseEntity<?> response =
-        controller.updateBookmarkTree(USER_ID, expectedHash, testRootFolder);
+    ResponseEntity<?> response = controller.putBookmarkTree(USER_ID, expectedHash, testRootFolder);
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     assertThat(response.getBody()).isEqualTo("Conflict: Hash mismatch");
@@ -69,24 +68,22 @@ class DriveControllerTest {
   }
 
   @Test
-  void updateBookmarkTree_WhenUpdateSuccessful_ReturnsNoContent() {
+  void updateBookmarkTree_WhenPutSuccessful_ReturnsNoContent() {
     String expectedHash = "expected-hash";
     doNothing().when(service).updateTreeWithHashCheck(USER_ID, expectedHash, testRootFolder);
-    ResponseEntity<?> response =
-        controller.updateBookmarkTree(USER_ID, expectedHash, testRootFolder);
+    ResponseEntity<?> response = controller.putBookmarkTree(USER_ID, expectedHash, testRootFolder);
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     verify(service).updateTreeWithHashCheck(USER_ID, expectedHash, testRootFolder);
   }
 
   @Test
-  void updateBookmarkTree_WhenUserNotFound_ReturnsNotFoundResponse() {
+  void putBookmarkTree_WhenUserNotFound_ReturnsNotFoundResponse() {
     String expectedHash = "expected-hash";
     doThrow(new IllegalStateException("User not found"))
         .when(service)
         .updateTreeWithHashCheck(USER_ID, expectedHash, testRootFolder);
-    ResponseEntity<?> response =
-        controller.updateBookmarkTree(USER_ID, expectedHash, testRootFolder);
+    ResponseEntity<?> response = controller.putBookmarkTree(USER_ID, expectedHash, testRootFolder);
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     assertThat(response.getBody()).isEqualTo("Not Found: User not found");

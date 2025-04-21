@@ -24,7 +24,7 @@ public class FolderValidator {
 
   public void validate(Folder folder) {
     assertValidUUID(folder.id(), "Folder.id");
-    assertThat(folder.kind()).as("Folder.kind must be 'folder'").isEqualTo("folder");
+    assertThat(folder.type()).as("Folder.type must be 'folder'").isEqualTo("folder");
     assertThat(folder.name()).as("Folder.name must not be null or blank").isNotBlank();
     assertThat(folder.contents()).as("Folder.contents must not be null").isNotNull();
     for (TreeNode child : folder.contents()) {

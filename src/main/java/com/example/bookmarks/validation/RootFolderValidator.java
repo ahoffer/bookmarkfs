@@ -19,7 +19,7 @@ public class RootFolderValidator {
 
   public void validate(RootFolder root) {
     assertThat(root.id()).as("RootFolder.id must be 'root'").isEqualTo("root");
-    assertThat(root.kind()).as("RootFolder.kind must be 'root'").isEqualTo("root");
+    assertThat(root.type()).as("RootFolder.type must be 'root'").isEqualTo("root");
     assertThat(root.name()).as("RootFolder.name must be 'root'").isEqualTo("root");
     List<TreeNode> contents = root.getContents();
     assertThat(contents).as("RootFolder.contents must contain exactly 3 items").hasSize(3);

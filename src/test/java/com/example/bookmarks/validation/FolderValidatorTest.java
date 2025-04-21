@@ -58,7 +58,7 @@ public class FolderValidatorTest {
     Folder folder = new Folder(UUID.randomUUID().toString(), "not-folder", "My Folder", List.of());
     assertThatThrownBy(() -> folderValidator.validate(folder))
         .isInstanceOf(AssertionError.class)
-        .hasMessageContaining("Folder.kind must be 'folder'");
+        .hasMessageContaining("Folder.type must be 'folder'");
   }
 
   @Test

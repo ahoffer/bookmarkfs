@@ -53,7 +53,7 @@ public class BookmarkValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(invalid))
         .isInstanceOf(AssertionError.class)
-        .hasMessageContaining("Bookmark.kind must be 'bookmark'");
+        .hasMessageContaining("Bookmark.type must be 'bookmark'");
   }
 
   @Test

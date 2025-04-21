@@ -77,7 +77,7 @@ public class RootFolderValidatorTest {
             List.of(folder("my-folder"), folder("inbox"), folder("trash")));
     assertThatThrownBy(() -> rootValidator.validate(root))
         .isInstanceOf(AssertionError.class)
-        .hasMessageContaining("RootFolder.kind must be 'root'");
+        .hasMessageContaining("RootFolder.type must be 'root'");
   }
 
   @Test

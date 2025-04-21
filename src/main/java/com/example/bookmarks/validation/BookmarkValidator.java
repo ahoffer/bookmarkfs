@@ -17,7 +17,7 @@ public class BookmarkValidator {
 
   public void validate(Bookmark bookmark) {
     assertValidUUID(bookmark.id(), "Bookmark.id");
-    assertThat(bookmark.kind()).as("Bookmark.kind must be 'bookmark'").isEqualTo("bookmark");
+    assertThat(bookmark.type()).as("Bookmark.type must be 'bookmark'").isEqualTo("bookmark");
     assertThat(bookmark.url()).as("Bookmark.url must not be null or blank").isNotBlank();
   }
 }
