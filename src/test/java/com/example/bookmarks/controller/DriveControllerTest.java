@@ -7,6 +7,8 @@ import com.example.bookmarks.model.Root;
 import com.example.bookmarks.persistence.UserDrive;
 import com.example.bookmarks.service.DriveService;
 import com.example.bookmarks.service.ServiceExceptions;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,8 @@ class DriveControllerTest {
 
   @InjectMocks private DriveController controller;
   @Mock private DriveService service;
+
+  static ObjectMapper mapper = new ObjectMapper();
 
   private Root testRoot;
 
@@ -63,27 +67,29 @@ class DriveControllerTest {
   }
 
   @Test
-  void putDrive_WhenHashConflict_ReturnsConflictResponse() {
+  void putDrive_WhenHashConflict_ReturnsConflictResponse() throws JsonProcessingException {
     UserDrive inputDrive = new UserDrive(USER_ID, testRoot);
 
     when(service.putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot))
-            .thenThrow(new ServiceExceptions.HashMismatchException("Hashes don't match"));
+        .thenThrow(new ServiceExceptions.HashMismatchException("Hashes don't match"));
 
-    ResponseEntity<?> response = controller.putDrive("expected-hash", USER_ID, inputDrive);
+    ResponseEntity<?> response =
+        controller.putDrive("expected-hash", USER_ID, mapper.writeValueAsString(inputDrive));
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED);
     assertThat(response.getBody().toString()).contains("Hash mismatch");
   }
 
   @Test
-  void putDrive_WhenPutSuccessful_ReturnsOkResponse() {
+  void putDrive_WhenPutSuccessful_ReturnsOkResponse() throws JsonProcessingException {
     UserDrive inputDrive = new UserDrive(USER_ID, testRoot);
     UserDrive returnedDrive = new UserDrive(USER_ID, testRoot, "new-hash");
 
     when(service.putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot))
-            .thenReturn(returnedDrive);
+        .thenReturn(returnedDrive);
 
-    ResponseEntity<?> response = controller.putDrive("expected-hash", USER_ID, inputDrive);
+    ResponseEntity<?> response =
+        controller.putDrive("expected-hash", USER_ID, mapper.writeValueAsString(inputDrive));
 
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -93,13 +99,14 @@ class DriveControllerTest {
   }
 
   @Test
-  void putDrive_WhenUserNotFound_ReturnsNotFoundResponse() {
+  void putDrive_WhenUserNotFound_ReturnsNotFoundResponse() throws JsonProcessingException {
     UserDrive inputDrive = new UserDrive(USER_ID, testRoot);
 
     when(service.putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot))
-            .thenThrow(new ServiceExceptions.UserNotFoundException("User not found"));
+        .thenThrow(new ServiceExceptions.UserNotFoundException("User not found"));
 
-    ResponseEntity<?> response = controller.putDrive("expected-hash", USER_ID, inputDrive);
+    ResponseEntity<?> response =
+        controller.putDrive("expected-hash", USER_ID, mapper.writeValueAsString(inputDrive));
 
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -128,7 +135,7 @@ class DriveControllerTest {
   @Test
   void createUser_WhenUserExists_ReturnsConflictResponse() {
     when(service.createUser(USER_ID))
-            .thenThrow(new IllegalArgumentException("User already exists"));
+        .thenThrow(new IllegalArgumentException("User already exists"));
 
     ResponseEntity<?> response = controller.createUser(USER_ID);
 

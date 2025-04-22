@@ -46,7 +46,8 @@ class DriveServiceTest {
     when(repository.findById(userId)).thenReturn(Optional.of(current));
     assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(userId, expectedHash, newRoot))
         .isInstanceOf(ServiceExceptions.HashMismatchException.class)
-        .hasMessageContaining("abc123").hasMessageContaining("wrongHash");
+        .hasMessageContaining("abc123")
+        .hasMessageContaining("wrongHash");
     verify(repository, never()).save(any());
   }
 
