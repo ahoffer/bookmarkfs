@@ -1,6 +1,6 @@
 package com.example.bookmarks.persistence;
 
-import com.example.bookmarks.model.RootFolder;
+import com.example.bookmarks.model.Root;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -14,7 +14,7 @@ public class UserDrive {
 
   @Convert(converter = RootFolderConverter.class)
   @Column(name = "data", columnDefinition = "jsonb", nullable = false)
-  private RootFolder data;
+  private Root data;
 
   @Column(name = "current_hash", nullable = false)
   private String currentHash;
@@ -26,12 +26,12 @@ public class UserDrive {
     // For JPA
   }
 
-  public UserDrive(String userId, RootFolder data) {
+  public UserDrive(String userId, Root data) {
     this.userId = userId;
     setData(data); // ensures hash is updated
   }
 
-  public UserDrive(String userId, RootFolder data, String currentHash) {
+  public UserDrive(String userId, Root data, String currentHash) {
     this.userId = userId;
     this.data = data;
     this.currentHash = currentHash;
@@ -48,11 +48,11 @@ public class UserDrive {
     return userId;
   }
 
-  public RootFolder getData() {
+  public Root getData() {
     return data;
   }
 
-  public void setData(RootFolder data) {
+  public void setData(Root data) {
     this.data = data;
     this.currentHash = data != null ? data.hash() : null;
   }

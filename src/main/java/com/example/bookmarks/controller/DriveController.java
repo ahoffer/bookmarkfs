@@ -1,6 +1,8 @@
 package com.example.bookmarks.controller;
 
-import com.example.bookmarks.model.RootFolder;
+import com.example.bookmarks.model.Root;
+import com.example.bookmarks.model.Validation;
+import com.example.bookmarks.model.Validation.ValidationContext;
 import com.example.bookmarks.service.DriveService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +31,13 @@ public class DriveController {
   public ResponseEntity<?> putBookmarkTree(
       @PathVariable String userId,
       @RequestHeader("If-Match") String expectedHash,
-      @RequestBody RootFolder newTree) {
+      @RequestBody Root newTree) {
+
+    ValidationContext result = new Validation().validate(newTree);
+    if (result.hasErrors()) {
+      throw new Validation.ValidationException(result.getErrors());
+    }
+
     try {
       service.updateTreeWithHashCheck(userId, expectedHash, newTree);
       return ResponseEntity.noContent().build();

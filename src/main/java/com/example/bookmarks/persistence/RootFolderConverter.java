@@ -1,17 +1,17 @@
 package com.example.bookmarks.persistence;
 
-import com.example.bookmarks.model.RootFolder;
+import com.example.bookmarks.model.Root;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class RootFolderConverter implements AttributeConverter<RootFolder, String> {
+public class RootFolderConverter implements AttributeConverter<Root, String> {
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @Override
-  public String convertToDatabaseColumn(RootFolder rootFolder) {
+  public String convertToDatabaseColumn(Root rootFolder) {
     try {
       return mapper.writeValueAsString(rootFolder);
     } catch (Exception e) {
@@ -20,9 +20,9 @@ public class RootFolderConverter implements AttributeConverter<RootFolder, Strin
   }
 
   @Override
-  public RootFolder convertToEntityAttribute(String dbData) {
+  public Root convertToEntityAttribute(String dbData) {
     try {
-      return mapper.readValue(dbData, RootFolder.class);
+      return mapper.readValue(dbData, Root.class);
     } catch (Exception e) {
       throw new IllegalArgumentException("Failed to deserialize RootFolder", e);
     }

@@ -5,14 +5,8 @@ import java.util.List;
 public record Folder(String id, String type, String name, List<TreeNode> contents)
     implements TreeNode {
 
-  @Override
-  public String getId() {
-    return id;
-  }
-
-  @Override
-  public String getType() {
-    return type;
+  public Folder {
+    contents = contents == null ? List.of() : List.copyOf(contents);
   }
 
   @Override

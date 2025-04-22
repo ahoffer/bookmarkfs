@@ -30,9 +30,12 @@ public class DigestAccumulatorTest {
     DigestAccumulator acc = new DigestAccumulator();
     List<TreeNode> nodes =
         List.of(
-            new Bookmark(UUID.randomUUID().toString(), "bookmark", "https://example.com/first"),
-            new Bookmark(UUID.randomUUID().toString(), "bookmark", "https://example.com/second"),
-            new Bookmark(UUID.randomUUID().toString(), "bookmark", "https://example.com/third"));
+            new Bookmark(
+                UUID.randomUUID().toString(), "bookmark", "first", "https://example.com/first"),
+            new Bookmark(
+                UUID.randomUUID().toString(), "bookmark", "second", "https://example.com/second"),
+            new Bookmark(
+                UUID.randomUUID().toString(), "bookmark", "third", "https://example.com/third"));
     acc.updateAll(nodes);
     String hash = acc.digestBase64();
     assertThat(hash).isNotEmpty();
@@ -47,8 +50,10 @@ public class DigestAccumulatorTest {
   @Test
   void updateAll_varargs_withMultipleNodes_accumulates() {
     DigestAccumulator acc = new DigestAccumulator();
-    TreeNode a = new Bookmark(UUID.randomUUID().toString(), "bookmark", "https://example.com/a");
-    TreeNode b = new Bookmark(UUID.randomUUID().toString(), "bookmark", "https://example.com/b");
+    TreeNode a =
+        new Bookmark(UUID.randomUUID().toString(), "bookmark", "a", "https://example.com/a");
+    TreeNode b =
+        new Bookmark(UUID.randomUUID().toString(), "bookmark", "b", "https://example.com/b");
     acc.updateAll(a, b);
     String hash = acc.digestBase64();
     assertThat(hash).isNotEmpty();
@@ -83,7 +88,8 @@ public class DigestAccumulatorTest {
   @Test
   void update_withTreeNode_callsHashMethod() {
     DigestAccumulator acc = new DigestAccumulator();
-    TreeNode node = new Bookmark(UUID.randomUUID().toString(), "bookmark", "https://example.com");
+    TreeNode node =
+        new Bookmark(UUID.randomUUID().toString(), "bookmark", "title", "https://example.com");
     acc.update(node);
     String hash = acc.digestBase64();
     assertThat(hash).isNotEmpty();
