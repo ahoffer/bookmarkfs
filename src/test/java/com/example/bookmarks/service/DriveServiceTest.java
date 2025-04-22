@@ -39,15 +39,13 @@ class DriveServiceTest {
   @Test
   void putDriveWithHashCheck_Mismatch() {
     String userId = "user123";
-    String expectedHash = "abc123";
     Root newRoot = mock(Root.class);
     when(newRoot.hash()).thenReturn("newHashAfterUpdate");
-    UserDrive current = new UserDrive(userId, newRoot, "wrongHash");
+    UserDrive current = new UserDrive(userId, newRoot, "current server hash value");
     when(repository.findById(userId)).thenReturn(Optional.of(current));
-    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(userId, expectedHash, newRoot))
+    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(new UserDrive(userId, newRoot, "old client hash value")))
         .isInstanceOf(ServiceExceptions.HashMismatchException.class)
-        .hasMessageContaining("abc123")
-        .hasMessageContaining("wrongHash");
+        .hasMessageContaining("current server hash value, but was: old client hash value");
     verify(repository, never()).save(any());
   }
 
@@ -59,12 +57,12 @@ class DriveServiceTest {
 
     UserDrive current = new UserDrive(userId, newRoot, expectedHash);
     when(repository.findById(userId)).thenReturn(Optional.of(current));
-    service.putDriveWithFreshnessCheck(userId, expectedHash, newRoot);
+    service.putDriveWithFreshnessCheck(new UserDrive(userId, newRoot, expectedHash));
     ArgumentCaptor<UserDrive> saved = ArgumentCaptor.forClass(UserDrive.class);
     verify(repository).save(saved.capture());
     UserDrive updated = saved.getValue();
     assertThat(updated.getData()).isEqualTo(newRoot);
-    assertThat(updated.getCurrentHash())
+    assertThat(updated.getHash())
         .as("Hash should be recalculated and match root.hash()")
         .isEqualTo(newRoot.hash());
   }
@@ -74,7 +72,7 @@ class DriveServiceTest {
     String userId = "user123";
     Root root = mock(Root.class);
     when(repository.findById(userId)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(userId, "hash", root))
+    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(new UserDrive(userId,  root, "hash")))
         .isInstanceOf(ServiceExceptions.UserNotFoundException.class);
     verify(repository, never()).save(any());
   }

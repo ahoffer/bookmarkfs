@@ -17,7 +17,7 @@ public class UserDrive {
   private Root data;
 
   @Column(name = "current_hash", nullable = false)
-  private String currentHash;
+  private String hash;
 
   @Column(name = "updated", nullable = false)
   private Instant lastUpdated;
@@ -31,10 +31,11 @@ public class UserDrive {
     setData(data); // ensures hash is updated
   }
 
-  public UserDrive(String userId, Root data, String currentHash) {
+  // This is for JSON serialization. It is not meant to be used in plain-old Java code.
+  public UserDrive(String userId, Root data, String hash) {
     this.userId = userId;
     this.data = data;
-    this.currentHash = currentHash;
+    this.hash = hash;
   }
 
   // Update the timestamp when saved to the DB
@@ -54,22 +55,10 @@ public class UserDrive {
 
   public void setData(Root data) {
     this.data = data;
-    this.currentHash = data != null ? data.hash() : null;
+    this.hash = data != null ? data.hash() : null;
   }
 
-  public String getCurrentHash() {
-    return currentHash;
-  }
-
-  public void setCurrentHashManually(String currentHash) {
-    this.currentHash = currentHash;
-  }
-
-  public Instant getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Instant lastUpdated) {
-    this.lastUpdated = lastUpdated;
+  public String getHash() {
+    return hash;
   }
 }

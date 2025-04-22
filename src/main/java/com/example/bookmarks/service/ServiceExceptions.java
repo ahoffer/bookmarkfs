@@ -7,6 +7,12 @@ public class ServiceExceptions {
     }
   }
 
+  public static class UserAlreadyExistsException extends RuntimeException {
+    public UserAlreadyExistsException(String message) {
+      super(message);
+    }
+  }
+
   public static class HashMismatchException extends RuntimeException {
     public HashMismatchException(String message) {
       super(message);

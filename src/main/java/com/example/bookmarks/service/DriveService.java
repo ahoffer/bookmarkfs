@@ -3,6 +3,7 @@ package com.example.bookmarks.service;
 import com.example.bookmarks.model.Root;
 import com.example.bookmarks.persistence.UserDrive;
 import com.example.bookmarks.persistence.UserDriveRepository;
+import com.example.bookmarks.service.ServiceExceptions.UserAlreadyExistsException;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,29 +21,30 @@ public class DriveService {
   }
 
   @Transactional
-  public UserDrive putDriveWithFreshnessCheck(String userId, String expectedHash, Root newRoot) {
-    UserDrive current =
+  public UserDrive putDriveWithFreshnessCheck(UserDrive clientEntity) {
+    UserDrive serverEntity =
         repository
-            .findById(userId)
+            .findById(clientEntity.getUserId())
             .orElseThrow(
                 () ->
                     new ServiceExceptions.UserNotFoundException(
-                        "No drive found for user: " + userId));
+                        "No user found: " + clientEntity.getUserId()));
 
-    String actualHash = current.getCurrentHash();
-    if (!actualHash.equals(expectedHash)) {
+    String expectedHash = serverEntity.getHash();
+    String providedHash = clientEntity.getHash();
+    if (!providedHash.equals(expectedHash)) {
       throw new ServiceExceptions.HashMismatchException(
-          "Expected: " + expectedHash + ", but was: " + actualHash);
+          "Expected: " + expectedHash + ", but was: " + providedHash);
     }
 
-    current.setData(newRoot);
-    return repository.save(current);
+    serverEntity.setData(clientEntity.getData());
+    return repository.save(serverEntity);
   }
 
   @Transactional
   public UserDrive createUser(String userId) {
     if (repository.existsById(userId)) {
-      throw new IllegalArgumentException("User already exists");
+      throw new UserAlreadyExistsException("User " + userId + "already exists");
     }
     Root root = Root.createNew();
     UserDrive entity = new UserDrive(userId, root);
