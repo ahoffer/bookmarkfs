@@ -1,14 +1,22 @@
 package com.example.bookmarks.controller;
 
-import com.example.bookmarks.model.Root;
 import com.example.bookmarks.model.Validation;
 import com.example.bookmarks.model.Validation.ValidationContext;
+import com.example.bookmarks.model.ValidationException;
+import com.example.bookmarks.persistence.UserDrive;
 import com.example.bookmarks.service.DriveService;
+import com.example.bookmarks.service.ServiceExceptions;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/users/{userId}/vfs")
 public class DriveController {
 
   private final DriveService service;
@@ -17,34 +25,57 @@ public class DriveController {
     this.service = service;
   }
 
-  @GetMapping
-  public ResponseEntity<?> getBookmarkTree(@PathVariable String userId) {
+  @PostMapping("/user/{userId}")
+  public ResponseEntity<?> createUser(@PathVariable String userId) {
+    try {
+      UserDrive userDrive = service.createUser(userId);
+      return ResponseEntity.status(HttpStatus.CREATED)
+          .eTag('"' + userDrive.getCurrentHash() + '"')
+          .header("X-User-Id", userDrive.getUserId())
+          .body(userDrive.getData());
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.CONFLICT).body("Conflict: " + e.getMessage());
+    }
+  }
+
+  @GetMapping("/user/{userId}")
+  public ResponseEntity<?> getDrive(@PathVariable String userId) {
     return service
         .getUserDrive(userId)
         .map(
-            tree ->
-                ResponseEntity.ok().eTag('"' + tree.getCurrentHash() + '"').body(tree.getData()))
+            userDrive ->
+                ResponseEntity.ok()
+                    .eTag('"' + userDrive.getCurrentHash() + '"')
+                    .header("X-User-Id", userDrive.getUserId())
+                    .body(userDrive.getData()))
         .orElse(ResponseEntity.notFound().build());
   }
 
-  @PutMapping
-  public ResponseEntity<?> putBookmarkTree(
-      @PathVariable String userId,
+  @PutMapping("/user/{userId}")
+  public ResponseEntity<?> putDrive(
       @RequestHeader("If-Match") String expectedHash,
-      @RequestBody Root newTree) {
+      @PathVariable String userId,
+      @RequestBody UserDrive drive) {
 
-    ValidationContext result = new Validation().validate(newTree);
+    ValidationContext result = new Validation().validate(drive.getData());
     if (result.hasErrors()) {
-      throw new Validation.ValidationException(result.getErrors());
+      throw new ValidationException(result.getErrors());
     }
 
     try {
-      service.updateTreeWithHashCheck(userId, expectedHash, newTree);
-      return ResponseEntity.noContent().build();
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(409).body("Conflict: " + e.getMessage());
-    } catch (IllegalStateException e) {
-      return ResponseEntity.status(404).body("Not Found: " + e.getMessage());
+      UserDrive userDrive =
+          service.putDriveWithFreshnessCheck(userId, expectedHash, drive.getData());
+      return ResponseEntity.ok()
+          .eTag('"' + userDrive.getCurrentHash() + '"')
+          .header("X-User-Id", userDrive.getUserId())
+          .body(userDrive.getData());
+
+    } catch (ServiceExceptions.UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + userId);
+
+    } catch (ServiceExceptions.HashMismatchException e) {
+      return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+          .body("Hash mismatch: " + e.getMessage());
     }
   }
 }

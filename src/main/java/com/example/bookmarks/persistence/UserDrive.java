@@ -13,7 +13,7 @@ public class UserDrive {
   private String userId;
 
   @Convert(converter = RootFolderConverter.class)
-  @Column(name = "data", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "data", columnDefinition = "text", nullable = false)
   private Root data;
 
   @Column(name = "current_hash", nullable = false)

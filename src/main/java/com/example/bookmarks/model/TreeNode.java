@@ -6,7 +6,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+@JsonTypeInfo(use = NAME, include = PROPERTY, property = "type", visible = true)
 @JsonSubTypes({
   @JsonSubTypes.Type(value = Folder.class, name = "folder"),
   @JsonSubTypes.Type(value = Bookmark.class, name = "bookmark"),

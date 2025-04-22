@@ -37,28 +37,28 @@ class DriveServiceTest {
   }
 
   @Test
-  void updateTreeWithHashCheck_hashMismatch() {
+  void putDriveWithHashCheck_Mismatch() {
     String userId = "user123";
     String expectedHash = "abc123";
     Root newRoot = mock(Root.class);
     when(newRoot.hash()).thenReturn("newHashAfterUpdate");
     UserDrive current = new UserDrive(userId, newRoot, "wrongHash");
     when(repository.findById(userId)).thenReturn(Optional.of(current));
-    assertThatThrownBy(() -> service.updateTreeWithHashCheck(userId, expectedHash, newRoot))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("Hash mismatch. Expected: abc123, but was: wrongHash");
+    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(userId, expectedHash, newRoot))
+        .isInstanceOf(ServiceExceptions.HashMismatchException.class)
+        .hasMessageContaining("abc123").hasMessageContaining("wrongHash");
     verify(repository, never()).save(any());
   }
 
   @Test
-  void updateTreeWithHashCheck_successful() {
+  void putDriveWithFreshnessCheck_successful() {
     String userId = "user123";
     Root newRoot = Root.createNew();
     String expectedHash = newRoot.hash(); // current hash in DB
 
     UserDrive current = new UserDrive(userId, newRoot, expectedHash);
     when(repository.findById(userId)).thenReturn(Optional.of(current));
-    service.updateTreeWithHashCheck(userId, expectedHash, newRoot);
+    service.putDriveWithFreshnessCheck(userId, expectedHash, newRoot);
     ArgumentCaptor<UserDrive> saved = ArgumentCaptor.forClass(UserDrive.class);
     verify(repository).save(saved.capture());
     UserDrive updated = saved.getValue();
@@ -69,13 +69,12 @@ class DriveServiceTest {
   }
 
   @Test
-  void updateTreeWithHashCheck_treeNotFound() {
+  void putDriveNotFound() {
     String userId = "user123";
     Root root = mock(Root.class);
     when(repository.findById(userId)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> service.updateTreeWithHashCheck(userId, "hash", root))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("Tree not found");
+    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(userId, "hash", root))
+        .isInstanceOf(ServiceExceptions.UserNotFoundException.class);
     verify(repository, never()).save(any());
   }
 }

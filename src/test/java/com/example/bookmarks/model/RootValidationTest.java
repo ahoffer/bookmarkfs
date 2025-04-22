@@ -17,7 +17,7 @@ class RootValidationTest {
   @Test
   void rootWithBlankName_failsValidation() {
     Folder blankName = new Folder(UUID.randomUUID().toString(), "folder", "", List.of());
-    Root root = Root.fromJson(List.of(blankName, folder("inbox"), folder("trash")));
+    Root root = new Root(List.of(blankName, folder("inbox"), folder("trash")));
 
     Validation.ValidationContext ctx = validation.validate(root);
 
@@ -33,7 +33,7 @@ class RootValidationTest {
     Folder inbox2 = folder("inbox");
     Folder myFolder = folder("my-folder");
 
-    Root root = Root.fromJson(List.of(inbox1, inbox2, myFolder));
+    Root root = new Root(List.of(inbox1, inbox2, myFolder));
 
     Validation.ValidationContext ctx = validation.validate(root);
 
@@ -46,7 +46,7 @@ class RootValidationTest {
   void rootWithMislabeledFolderType_failsValidation() {
     Folder wrongType =
         new Folder(UUID.randomUUID().toString(), "not-a-folder", "my-folder", List.of());
-    Root root = Root.fromJson(List.of(wrongType, folder("inbox"), folder("trash")));
+    Root root = new Root(List.of(wrongType, folder("inbox"), folder("trash")));
 
     Validation.ValidationContext ctx = validation.validate(root);
 
@@ -57,7 +57,7 @@ class RootValidationTest {
 
   @Test
   void rootWithTooFewFolders_failsValidation() {
-    Root root = Root.fromJson(List.of(folder("my-folder"), folder("inbox"))); // only two
+    Root root = new Root(List.of(folder("my-folder"), folder("inbox"))); // only two
 
     Validation.ValidationContext ctx = validation.validate(root);
 
@@ -70,7 +70,7 @@ class RootValidationTest {
   @Test
   void rootWithUnexpectedFolderName_failsValidation() {
     Folder bad = folder("downloads"); // invalid name
-    Root root = Root.fromJson(List.of(bad, folder("inbox"), folder("trash")));
+    Root root = new Root(List.of(bad, folder("inbox"), folder("trash")));
 
     Validation.ValidationContext ctx = validation.validate(root);
 

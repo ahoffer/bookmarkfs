@@ -1,9 +1,9 @@
+DROP TABLE IF EXISTS user_drive CASCADE;
 
-DROP TABLE IF EXISTS user_bookmark_tree CASCADE;
-
-CREATE TABLE user_bookmark_tree (
-    user_id TEXT PRIMARY KEY,
-    data JSONB NOT NULL,
-    current_hash TEXT NOT NULL,
-    updated TIMESTAMPTZ NOT NULL
+CREATE TABLE user_drive
+(
+    user_id      TEXT PRIMARY KEY,
+    data         TEXT       NOT NULL,
+    current_hash TEXT        NOT NULL,
+    updated      TIMESTAMPTZ NOT NULL
 );

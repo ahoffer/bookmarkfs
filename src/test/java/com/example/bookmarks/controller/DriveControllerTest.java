@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import com.example.bookmarks.model.Root;
 import com.example.bookmarks.persistence.UserDrive;
 import com.example.bookmarks.service.DriveService;
+import com.example.bookmarks.service.ServiceExceptions;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,92 +21,119 @@ import org.springframework.http.ResponseEntity;
 class DriveControllerTest {
   private static final String CURRENT_HASH = "abc123";
   private static final String USER_ID = "testUser";
+
   @InjectMocks private DriveController controller;
   @Mock private DriveService service;
-  private UserDrive testUserDrive;
+
+  private Root testRoot;
+
+  @BeforeEach
+  void setUp() {
+    testRoot = Root.createNew();
+  }
 
   @Test
-  void getBookmarkTree_WhenUserDriveExists_ReturnsOkResponseWithETag() {
-    Root root = Root.createNew(); // Use a single instance for both stubbing and assertion
-
+  void getDrive_WhenUserDriveExists_ReturnsOkResponseWithETag() {
+    UserDrive testUserDrive = mock(UserDrive.class);
+    when(testUserDrive.getData()).thenReturn(testRoot);
     when(testUserDrive.getCurrentHash()).thenReturn(CURRENT_HASH);
-    when(testUserDrive.getData()).thenReturn(root);
+    when(testUserDrive.getUserId()).thenReturn(USER_ID);
     when(service.getUserDrive(USER_ID)).thenReturn(Optional.of(testUserDrive));
-    ResponseEntity<?> response = controller.getBookmarkTree(USER_ID);
+
+    ResponseEntity<?> response = controller.getDrive(USER_ID);
+
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getHeaders()).containsKey("ETag");
     assertThat(response.getHeaders().getETag()).isEqualTo('"' + CURRENT_HASH + '"');
-    assertThat(response.getBody()).isEqualTo(root); // Same instance as above
+    assertThat(response.getHeaders().getFirst("X-User-Id")).isEqualTo(USER_ID);
+    assertThat(response.getBody()).isEqualTo(testRoot);
     verify(service).getUserDrive(USER_ID);
   }
 
-
   @Test
-  void getBookmarkTree_WhenUserDriveNotFound_ReturnsNotFoundResponse() {
+  void getDrive_WhenUserDriveNotFound_ReturnsNotFoundResponse() {
     when(service.getUserDrive(USER_ID)).thenReturn(Optional.empty());
-    ResponseEntity<?> response = controller.getBookmarkTree(USER_ID);
+
+    ResponseEntity<?> response = controller.getDrive(USER_ID);
+
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     verify(service).getUserDrive(USER_ID);
   }
 
-  @BeforeEach
-  void setUp() {
-    testUserDrive = mock(UserDrive.class);
+  @Test
+  void putDrive_WhenHashConflict_ReturnsConflictResponse() {
+    UserDrive inputDrive = new UserDrive(USER_ID, testRoot);
+
+    when(service.putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot))
+            .thenThrow(new ServiceExceptions.HashMismatchException("Hashes don't match"));
+
+    ResponseEntity<?> response = controller.putDrive("expected-hash", USER_ID, inputDrive);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED);
+    assertThat(response.getBody().toString()).contains("Hash mismatch");
   }
 
   @Test
-  void putBookmarkTree_WhenHashConflict_ReturnsConflictResponse() {
-    // Arrange
-    String userId = "user-123";
-    String expectedHash = "expected-hash";
-    Root root = Root.createNew();
+  void putDrive_WhenPutSuccessful_ReturnsOkResponse() {
+    UserDrive inputDrive = new UserDrive(USER_ID, testRoot);
+    UserDrive returnedDrive = new UserDrive(USER_ID, testRoot, "new-hash");
 
-    doThrow(new IllegalArgumentException("Hash mismatch"))
-            .when(service).updateTreeWithHashCheck(userId, expectedHash, root);
+    when(service.putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot))
+            .thenReturn(returnedDrive);
 
-    DriveController controller = new DriveController(service);
-
-    ResponseEntity<?> response = controller.putBookmarkTree(userId, expectedHash, root);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-    assertThat(response.getBody()).isEqualTo("Conflict: Hash mismatch");
-  }
-
-
-  @Test
-  void updateBookmarkTree_WhenPutSuccessful_ReturnsNoContent() {
-    String expectedHash = "expected-hash";
-    Root root = Root.createNew(); // Create it once
-
-    doNothing().when(service).updateTreeWithHashCheck(USER_ID, expectedHash, root);
-
-    ResponseEntity<?> response = controller.putBookmarkTree(USER_ID, expectedHash, root);
+    ResponseEntity<?> response = controller.putDrive("expected-hash", USER_ID, inputDrive);
 
     assertThat(response).isNotNull();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-
-    verify(service).updateTreeWithHashCheck(USER_ID, expectedHash, root);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getHeaders().getETag()).isEqualTo("\"new-hash\"");
+    assertThat(response.getBody()).isEqualTo(testRoot);
+    verify(service).putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot);
   }
 
-
   @Test
-  void putBookmarkTree_WhenUserNotFound_ReturnsNotFoundResponse() {
-    String expectedHash = "expected-hash";
-    Root root = Root.createNew(); // 🧠 Create once, use everywhere
+  void putDrive_WhenUserNotFound_ReturnsNotFoundResponse() {
+    UserDrive inputDrive = new UserDrive(USER_ID, testRoot);
 
-    doThrow(new IllegalStateException("User not found"))
-            .when(service)
-            .updateTreeWithHashCheck(USER_ID, expectedHash, root);
+    when(service.putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot))
+            .thenThrow(new ServiceExceptions.UserNotFoundException("User not found"));
 
-    ResponseEntity<?> response = controller.putBookmarkTree(USER_ID, expectedHash, root); // ✅ use same root
+    ResponseEntity<?> response = controller.putDrive("expected-hash", USER_ID, inputDrive);
 
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    assertThat(response.getBody()).isEqualTo("Not Found: User not found");
-
-    verify(service).updateTreeWithHashCheck(USER_ID, expectedHash, root); // ✅ same again
+    assertThat(response.getBody().toString()).contains("User not found");
+    verify(service).putDriveWithFreshnessCheck(USER_ID, "expected-hash", testRoot);
   }
 
+  @Test
+  void createUser_WhenSuccessful_ReturnsCreatedResponse() {
+    UserDrive testUserDrive = mock(UserDrive.class);
+    when(testUserDrive.getData()).thenReturn(testRoot);
+    when(testUserDrive.getCurrentHash()).thenReturn(CURRENT_HASH);
+    when(testUserDrive.getUserId()).thenReturn(USER_ID);
+    when(service.createUser(USER_ID)).thenReturn(testUserDrive);
+
+    ResponseEntity<?> response = controller.createUser(USER_ID);
+
+    assertThat(response).isNotNull();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getHeaders().getETag()).isEqualTo('"' + CURRENT_HASH + '"');
+    assertThat(response.getHeaders().getFirst("X-User-Id")).isEqualTo(USER_ID);
+    assertThat(response.getBody()).isEqualTo(testRoot);
+    verify(service).createUser(USER_ID);
+  }
+
+  @Test
+  void createUser_WhenUserExists_ReturnsConflictResponse() {
+    when(service.createUser(USER_ID))
+            .thenThrow(new IllegalArgumentException("User already exists"));
+
+    ResponseEntity<?> response = controller.createUser(USER_ID);
+
+    assertThat(response).isNotNull();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    assertThat(response.getBody().toString()).contains("User already exists");
+  }
 }

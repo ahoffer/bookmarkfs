@@ -1,12 +1,10 @@
 package com.example.bookmarks.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
 
 /**
  * Jackson uses reflection. JSON (de)serialiation) can cause states that are not possible with
@@ -30,10 +28,9 @@ public class SerializationTest {
 
     Folder folder = MAPPER.readValue(json, Folder.class);
 
-    assertThat(folder.contents()).isNotNull(); // ← this will fail without fix
+    assertThat(folder.contents()).isNotNull();
     assertThat(folder.contents()).isEmpty();
   }
-
 
   @Test
   void serializeRoot() throws JsonProcessingException {

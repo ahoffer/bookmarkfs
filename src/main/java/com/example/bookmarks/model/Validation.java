@@ -93,7 +93,7 @@ public class Validation {
           }
 
           // Check for exact match of names
-          List<String> actualNames = contents.stream().map(n -> ((Folder) n).name()).toList();
+          List<String> actualNames = contents.stream().map(n -> n.name()).toList();
 
           if (!actualNames.containsAll(REQUIRED_NAMES)
               || !REQUIRED_NAMES.containsAll(actualNames)) {
@@ -198,34 +198,10 @@ public class Validation {
     }
   }
 
-  public static record ValidationError(String path, String message) {
+  public record ValidationError(String path, String message) {
     @Override
     public String toString() {
       return "Error at '" + path + "': " + message;
-    }
-  }
-
-  public static class ValidationException extends RuntimeException {
-    private final List<ValidationError> errors;
-
-    public ValidationException(List<ValidationError> errors) {
-      super(buildMessage(errors));
-      this.errors = List.copyOf(errors);
-    }
-
-    public List<ValidationError> getErrors() {
-      return errors;
-    }
-
-    static String buildMessage(List<ValidationError> errors) {
-      if (errors == null || errors.isEmpty()) {
-        return "Validation failed with no details.";
-      }
-      return "Validation failed:\n"
-          + errors.stream()
-              .map(e -> e.path() + ": " + e.message())
-              .reduce((a, b) -> a + "\n" + b)
-              .orElse("Unknown validation error.");
     }
   }
 }

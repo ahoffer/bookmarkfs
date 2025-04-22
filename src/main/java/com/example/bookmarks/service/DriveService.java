@@ -20,14 +20,32 @@ public class DriveService {
   }
 
   @Transactional
-  public void updateTreeWithHashCheck(String userId, String expectedHash, Root rootFolder) {
+  public UserDrive putDriveWithFreshnessCheck(String userId, String expectedHash, Root newRoot) {
     UserDrive current =
-        repository.findById(userId).orElseThrow(() -> new IllegalStateException("Tree not found"));
-    if (!current.getCurrentHash().equals(expectedHash)) {
-      throw new IllegalStateException(
-          "Hash mismatch. Expected: " + expectedHash + ", but was: " + current.getCurrentHash());
+        repository
+            .findById(userId)
+            .orElseThrow(
+                () ->
+                    new ServiceExceptions.UserNotFoundException(
+                        "No drive found for user: " + userId));
+
+    String actualHash = current.getCurrentHash();
+    if (!actualHash.equals(expectedHash)) {
+      throw new ServiceExceptions.HashMismatchException(
+          "Expected: " + expectedHash + ", but was: " + actualHash);
     }
-    current.setData(rootFolder); // this will recalculate hash automatically
-    repository.save(current);
+
+    current.setData(newRoot);
+    return repository.save(current);
+  }
+
+  @Transactional
+  public UserDrive createUser(String userId) {
+    if (repository.existsById(userId)) {
+      throw new IllegalArgumentException("User already exists");
+    }
+    Root root = Root.createNew();
+    UserDrive entity = new UserDrive(userId, root);
+    return repository.save(entity);
   }
 }
