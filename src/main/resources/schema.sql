@@ -1,9 +1,10 @@
-DROP TABLE IF EXISTS user_drive CASCADE;
+-- only drop table if schema has changed
+-- DROP TABLE IF EXISTS user_drive CASCADE;
 
-CREATE TABLE user_drive
+CREATE TABLE IF NOT EXISTS drives
 (
-    user_id      TEXT PRIMARY KEY,
-    data         TEXT       NOT NULL,
-    current_hash TEXT        NOT NULL,
+    user_id      TEXT        PRIMARY KEY,
+    data         jsonb       NOT NULL,
+    hash         TEXT        NOT NULL,
     updated      TIMESTAMPTZ NOT NULL
 );

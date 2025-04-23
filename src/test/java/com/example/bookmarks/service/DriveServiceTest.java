@@ -43,7 +43,10 @@ class DriveServiceTest {
     when(newRoot.hash()).thenReturn("newHashAfterUpdate");
     UserDrive current = new UserDrive(userId, newRoot, "current server hash value");
     when(repository.findById(userId)).thenReturn(Optional.of(current));
-    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(new UserDrive(userId, newRoot, "old client hash value")))
+    assertThatThrownBy(
+            () ->
+                service.putDriveWithFreshnessCheck(
+                    new UserDrive(userId, newRoot, "old client hash value")))
         .isInstanceOf(ServiceExceptions.HashMismatchException.class)
         .hasMessageContaining("current server hash value, but was: old client hash value");
     verify(repository, never()).save(any());
@@ -72,7 +75,8 @@ class DriveServiceTest {
     String userId = "user123";
     Root root = mock(Root.class);
     when(repository.findById(userId)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> service.putDriveWithFreshnessCheck(new UserDrive(userId,  root, "hash")))
+    assertThatThrownBy(
+            () -> service.putDriveWithFreshnessCheck(new UserDrive(userId, root, "hash")))
         .isInstanceOf(ServiceExceptions.UserNotFoundException.class);
     verify(repository, never()).save(any());
   }
